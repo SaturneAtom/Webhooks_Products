@@ -14,7 +14,6 @@ Ce projet permet de générer des fiches produits en utilisant l'IA GPT-3.5. Vou
 git clone https://github.com/user/repo.git
 cd repo
 2. Installez les dépendances :
-bash
 npm install
 3. Lancez l'application :
 npm start
