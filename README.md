@@ -2,4 +2,10 @@
 Génération de fiches produits GPT 3.5
 
 
-##2
+Installer les dépendances
+
+npm install 
+
+Lancer le webhooks 
+
+npm start
