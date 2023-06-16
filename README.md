@@ -20,7 +20,7 @@ npm install
 3. Lancez l'application :
 bash
 npm start
-L'application sera accessible à l'adresse `http://localhost:3000`.
+La requête POST sera accessible à l'adresse `http://localhost:3000/webhook`.
 
 ## Installation et lancement avec Docker
 
@@ -34,7 +34,7 @@ docker build -t webhook-product .
 3. Lancez le conteneur Docker :
 bash
 docker run -p 3000:3000 --name webhook-product-instance webhook-product
-L'application sera accessible à l'adresse `http://localhost:3000`.
+La requête POST sera accessible à l'adresse `http://localhost:3000/webhook
 
 ## Utilisation
 
@@ -44,9 +44,3 @@ Une fois l'application lancée, vous pouvez envoyer des requêtes pour générer
 
 Les contributions sont les bienvenues ! N'hésitez pas à ouvrir des issues ou à soumettre des pull requests.
 
-## Licence
-
-Ce projet est sous licence MIT.
-
-
-Copiez et collez le contenu ci-dessus dans un fichier README.md sur GitHub pour afficher correctement le formatage.
