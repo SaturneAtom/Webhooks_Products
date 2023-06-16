@@ -28,7 +28,7 @@ cd repo
 docker build -t webhook-product .
 3. Lancez le conteneur Docker :
 docker run -p 3000:3000 --name webhook-product-instance webhook-product
-4. La requête POST sera accessible à l'adresse `http://localhost:3000/webhook
+4. La requête POST sera accessible à l'adresse http://localhost:3000/webhook
 
 ## Utilisation
 
