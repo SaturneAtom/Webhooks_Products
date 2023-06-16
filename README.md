@@ -6,6 +6,6 @@ Génération de fiches produits GPT 3.5
 
 npm install 
 
-# Lancer le webhooks 
+# Lancer le webhook 
 
 npm start
