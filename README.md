@@ -34,7 +34,4 @@ docker run -p 3000:3000 --name webhook-product-instance webhook-product
 
 Une fois l'application lancée, vous pouvez envoyer des requêtes pour générer des fiches produits en utilisant l'API GPT-3.5. Consulter la documentation API pour plus d'informations sur les endpoints et les paramètres disponibles.
 
-## Contribution
-
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir des issues ou à soumettre des pull requests.
 
