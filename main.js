@@ -93,7 +93,7 @@ app.post('/webhook', async (req, res) => {
   const generatedTitleText = await generateTextWithExponentialBackoff(titlePrompt, 300, 0.6);
   const generatedMetaDescText = await generateTextWithExponentialBackoff(metaDescPrompt, 400, 0.5);
   const generatedListText = await generateTextWithExponentialBackoff(listPrompt, 600, 0.6);
-  const generatedDescText = await generateTextWithExponentialBackoff(descPrompt, 800, 0.6);
+  const generatedDescText = await generateTextWithExponentialBackoff(descPrompt, 800, 1);
 
   let output;
 
