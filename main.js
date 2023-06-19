@@ -8,6 +8,9 @@ const port = 3000; // Set your desired port number
 dotenv.config();
 const token = process.env.TOKEN;
 
+// Serve static files from the "public" directory
+app.use(express.static('public'));
+
 const headers = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${token}`,
@@ -114,6 +117,8 @@ app.post('/webhook', async (req, res) => {
   console.log(JSON.stringify(output));
   // Send a response back to the sender
   res.status(200).send('Webhook received successfully');
+  // Send the output as the response
+  res.status(200).json(output);
 });
 
 // Start the server
