@@ -1,5 +1,5 @@
 const express = require('express');
-const dotenv = require('dotenv')
+const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const app = express();
@@ -24,7 +24,11 @@ function sleep(ms) {
 app.use(bodyParser.json());
 
 const MAX_RETRY_ATTEMPTS = 5; // Nombre maximal de tentatives de requête
-const INITIAL_DELAY = 2000; // Délai initial en millisecondes
+const INITIAL_DELAY = 1000; // Délai initial en millisecondes
+const MAX_LOGIN_ATTEMPTS = 3; // Nombre maximal de tentatives de connexion
+const EMAIL_PROMPT = "Please provide your email address:";
+
+const userAttempts = new Map(); // Map to track user attempts
 
 async function generateTextWithExponentialBackoff(prompt, maxTokens, temperature) {
   let retryAttempts = 0;
@@ -33,10 +37,12 @@ async function generateTextWithExponentialBackoff(prompt, maxTokens, temperature
   while (retryAttempts < MAX_RETRY_ATTEMPTS) {
     try {
       const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-3.5-turbo',
-        messages: [
+        //model: 'gpt-3.5-turbo',
+        model : 'text-davinci-003',
+        prompt : prompt,
+        /* messages: [
           { role: 'user', content: prompt }
-        ],
+        ], */
         max_tokens: maxTokens,
         temperature: temperature
       }, {
@@ -71,6 +77,7 @@ app.post('/webhook', async (req, res) => {
   const productCategory = req.body.product_category;
   const outputFormat = req.body.output_format;
   const outputLanguage = req.body.output_language;
+  const userEmail = req.body.user_email;
 
   console.log('Input:', input);
   console.log('Product Type:', productType);
@@ -78,6 +85,19 @@ app.post('/webhook', async (req, res) => {
   console.log('Output Format:', outputFormat);
   console.log('Output Language:', outputLanguage);
   console.log("Création de la fiche produit en cours");
+
+  // Check if the user has exceeded the maximum login attempts
+  if (!userAttempts.has(userEmail)) {
+    userAttempts.set(userEmail, 1);
+  } else {
+    const attempts = userAttempts.get(userEmail);
+    if (attempts >= MAX_LOGIN_ATTEMPTS) {
+      res.status(400).send('Maximum login attempts exceeded');
+      return;
+    }
+    userAttempts.set(userEmail, attempts + 1);
+  }
+
   // Generate the prompt
   const init_role = "Hi ChatGPT, I want you to pretend to be an SEO copywriting and SEO expert. Your role is to write compelling and professional product descriptions for users looking to buy online. Your expertise, creativity and relevance will be greatly appreciated.";
   const end_product = "Here is a product :";
@@ -130,4 +150,3 @@ app.listen(port, () => {
   console.log(`Webhook server listening on port ${port}`);
 });
 
-app.timeout = 30000;

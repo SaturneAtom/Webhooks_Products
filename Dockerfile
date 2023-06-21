@@ -1,20 +1,20 @@
-# Use an official Node.js runtime as the base image
-FROM node:14
+# Définir l'image de base à utiliser pour notre application
+FROM node:14-alpine
 
-# Set the working directory in the container
-WORKDIR /app
+# Définir le répertoire de travail
+WORKDIR /front
 
-# Copy package.json and package-lock.json to the working directory
+# Copier les fichiers package.json et package-lock.json dans le répertoire de travail
 COPY package*.json ./
 
-# Install the application dependencies
+# Installer les dépendances
 RUN npm install
 
-# Copy the rest of the application code to the working directory
+# Copier les fichiers de l'application
 COPY . .
 
-# Expose a port (optional, depends on your application)
+# Exposer le port 3000
 EXPOSE 3000
 
-# Define the command to run your application
-CMD ["node", "app.js"]
+# Démarrer l'application
+CMD ["npm", "start"]
