@@ -1,21 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="./style.css">
+    <title>Affichage de la réponse JSON avec un effet d'écriture progressive</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script>
+        function typeEffect(element, text, speed) {
+            element.innerHTML = "";
+
+            var i = 0;
+            var timer = setInterval(function () {
+                if (i < text.length) {
+                    element.append(text.charAt(i));
+                    i++;
+                } else {
+                    clearInterval(timer);
+                }
+            }, speed);
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var button = document.getElementById("submitButton");
+            var textarea = document.getElementById("inputText");
+            var responseContainer = document.getElementById("responseContainer");
+
+            button.addEventListener("click", function () {
+                var text = textarea.value;
+                var xhr = new XMLHttpRequest();
+                var url = "http://localhost:3000/webhook";
+                xhr.open("POST", url, true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        var jsonResponse = JSON.parse(xhr.responseText);
+                        responseContainer.classList.remove("hidden");
+
+                        // Traitement de la propriété "title"
+                        var titleResponse = jsonResponse.data.title;
+                        var h1Element = document.createElement("h1");
+                        responseContainer.appendChild(h1Element);
+                        typeEffect(h1Element, titleResponse, 75);
+
+                        // Traitement de la propriété "metadescription"
+                        var metadescriptionResponse = jsonResponse.data.metadescription;
+                        var metadescriptionElement = document.createElement("p");
+                        responseContainer.appendChild(metadescriptionElement);
+                        typeEffect(metadescriptionElement, metadescriptionResponse, 75);
+
+                        // Traitement de la propriété "description"
+                        var descriptionResponse = jsonResponse.data.description;
+                        var descriptionElement = document.createElement("div");
+                        responseContainer.appendChild(descriptionElement);
+                        typeEffect(descriptionElement, descriptionResponse, 75);
+
+                        // Traitement de la propriété "arguments"
+                        var argumentsResponse = jsonResponse.data.arguments[0];
+                        var argumentsElement = document.createElement("ul");
+                        responseContainer.appendChild(argumentsElement);
+                        typeEffect(argumentsElement, argumentsResponse, 75);
+                    }
+                };
+
+                var data = JSON.stringify({ text: text });
+                xhr.send(data);
+            });
+        });
+    </script>
 </head>
 
 <body>
-    <div id="table">
-        <div id="centeralign">
-            <h1>Création de fiches produit</h1>
-            <textarea class="input_data_box"></textarea>
-        </div>
-    </div>
+    <h1>Envoi de requête POST avec un textarea</h1>
+    <textarea id="inputText" placeholder="Saisissez votre texte ici..."></textarea>
+    <br>
+    <button id="submitButton">Envoyer</button>
+    <div id="responseContainer" class="hidden"></div>
 </body>
 
 </html>

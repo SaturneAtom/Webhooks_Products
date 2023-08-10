@@ -65,11 +65,11 @@ async function generateTextWithExponentialBackoff(prompt, maxTokens, temperature
 
 // Define a route for your webhook endpoint
 app.post('/webhook', async (req, res) => {
-  // Extract the JSON elements from the payload
-  const input = req.body.input;
+  console.log(req.body)
+  const input = req.body.text;
   const productType = req.body.product_type;
   const productCategory = req.body.product_category;
-  const outputFormat = req.body.output_format;
+  const outputFormat = "html"
   const outputLanguage = req.body.output_language;
 
   console.log('Input:', input);
@@ -110,7 +110,7 @@ app.post('/webhook', async (req, res) => {
   } else {
     output = {
       data: {
-        title: `<h1 class="title">${generatedTitleText}</h1>`,
+        title: generatedTitleText,
         metadescription: generatedMetaDescText,
         product_title: '',
         short_description: '',
