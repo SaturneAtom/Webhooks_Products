@@ -10,7 +10,7 @@ const token = process.env.TOKEN;
 
 // Serve static files from the "public" directory
 app.use(express.static('public'));
-
+app.use(express.json());
 const headers = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${token}`,
@@ -33,8 +33,9 @@ async function generateTextWithExponentialBackoff(prompt, maxTokens, temperature
   while (retryAttempts < MAX_RETRY_ATTEMPTS) {
     try {
       const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4',
         messages: [
+          { role : 'system', content: ''},
           { role: 'user', content: prompt }
         ],
         max_tokens: maxTokens,
@@ -66,10 +67,11 @@ async function generateTextWithExponentialBackoff(prompt, maxTokens, temperature
 // Define a route for your webhook endpoint
 app.post('/webhook', async (req, res) => {
   console.log(req.body)
+  console.log('Received POST request:', req.body);
   const input = req.body.text;
   const productType = req.body.product_type;
   const productCategory = req.body.product_category;
-  const outputFormat = "html"
+  const outputFormat = req.body.output_format
   const outputLanguage = req.body.output_language;
 
   console.log('Input:', input);
@@ -130,4 +132,4 @@ app.listen(port, () => {
   console.log(`Webhook server listening on port ${port}`);
 });
 
-app.timeout = 30000;
+

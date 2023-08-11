@@ -37,12 +37,12 @@ async function generateTextWithExponentialBackoff(prompt, maxTokens, temperature
   while (retryAttempts < MAX_RETRY_ATTEMPTS) {
     try {
       const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        //model: 'gpt-3.5-turbo',
+        model: 'gpt-3.5-turbo',
         model : 'text-davinci-003',
         prompt : prompt,
-        /* messages: [
+         messages: [
           { role: 'user', content: prompt }
-        ], */
+        ], 
         max_tokens: maxTokens,
         temperature: temperature
       }, {
