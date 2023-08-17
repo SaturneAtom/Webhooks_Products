@@ -25,7 +25,7 @@ app.use(bodyParser.json());
 
 const MAX_RETRY_ATTEMPTS = 5; // Nombre maximal de tentatives de requête
 const INITIAL_DELAY = 0; // Délai initial en millisecondes
-const init_role = "Hello, I'd like you to pretend you're an SEO copywriter and SEO expert. Your role is to write compelling and professional product descriptions for users looking to buy online. Your expertise, creativity and relevance will be greatly appreciated. Write the text in French. Don't write instructions or steps.";
+const init_role = "Hello, I'd like you to pretend you're an SEO copywriter and SEO expert. Don't write instructions or steps.";
 async function generateTextWithExponentialBackoff(prompt, maxTokens, temperature) {
   let retryAttempts = 0;
   let delay = INITIAL_DELAY;
@@ -33,7 +33,7 @@ async function generateTextWithExponentialBackoff(prompt, maxTokens, temperature
   while (retryAttempts < MAX_RETRY_ATTEMPTS) {
     try {
       const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-4',
+        model: 'gpt-3.5-turbo',
         messages: [
           { role: 'system', content: init_role },
           { role: 'user', content: prompt }
@@ -67,85 +67,198 @@ async function generateTextWithExponentialBackoff(prompt, maxTokens, temperature
 // Define a route for /title
 app.post('/title', async (req, res) => {
   const input = req.body.text;
+  const productType = req.body.product_type
+  const productCategory = req.body.product_category
+  const outputFormat = req.body.output_format; // Get the output format from the request
+  const outputLanguage = req.body.output_language; // Get the output language from the request
 
+  let generatedTitleText = '';
+
+  let titlePromptText = "";
+
+  if (outputLanguage === 'fr') {
+    titlePromptText = "Write title for this product on seven words maximum. Please write in French and use <h1> HTML. Check for spelling mistakes. I want 7 words maximum. It's important to respect the requested length for title.  ";
+  } else if (outputLanguage === 'en') {
+    titlePromptText = "Write title for this product. Please write in English and use <h1> HTML. I want 7 words maximum. It's important to respect the requested length for title.";
+  }
+
+  const Type = `To help you understand the context of my request here is the type of product is ${productType}. Do not write in the result, only take into account`
+  const Category = `To help you understand the context of my request here is the category of product is ${productCategory}. Do not write in the result, only take into account`
   
-  const titlePromptText = "Write a creative and relevant title for this product. Please write in French and use <h1> HTML. Check for spelling mistakes. Check spaces between numbers and avoid special characters. Your answer must respect the ideal size of a title, seven words. ";
+  const titlePrompt = `${titlePromptText}\n${Type}\n${Category}\n${input}`;
   
-  const titlePrompt = `${titlePromptText}${input} `;
 
-  const generatedTitleText = await generateTextWithExponentialBackoff(titlePrompt, 300, 0.6);
 
-  const cleanedGeneratedTitleText = generatedTitleText.replace(/"/g, ''); // Remove double quotes
+  generatedTitleText = await generateTextWithExponentialBackoff(titlePrompt, 25, 0.6, outputLanguage);
 
-  const output = {
-    data: {
-      title: cleanedGeneratedTitleText
-    }
-  };
+  // remove double quote and HTML tags if necessary
+  const cleanedGeneratedTitleText = generatedTitleText.replace(/<\/?[^>]+(>|$)/g, '').replace(/"/g, '');
 
-  res.status(200).json(output);
+  if (outputFormat === 'json') {
+    const output = {
+      data: {
+        title: cleanedGeneratedTitleText
+      }
+    };
+
+    res.status(200).json(output);
+  } else {
+    // Return the results with or without HTML formatting
+    const htmlResponse = `<h1>${cleanedGeneratedTitleText}</h1>`;
+    res.status(200).send(htmlResponse);
+  }
 });
 
-// Define a route for /metadescription
-app.post('/metadescription', async (req, res) => {
+// Define a route for /meta
+app.post('/meta', async (req, res) => {
   const input = req.body.text;
-  const metaDescPromptText = "Write a meta description for this product. Please write in French use <meta> HTML. Check for spelling mistakes. Check spaces between numbers and avoid special characters. Your answer must respect the ideal size of a meta description, 150 characters. ";
-  const metaDescPrompt = `${metaDescPromptText}${input} `;
+  const productType = req.body.product_type
+  const productCategory = req.body.product_category
+  const outputFormat = req.body.output_format; // Get the output format from the request
+  const outputLanguage = req.body.output_language; // Get the output language from the request
 
-  const generatedMetaDescText = await generateTextWithExponentialBackoff(metaDescPrompt, 400, 0.5);
+  let generatedMetaDescText = '';
 
-  // remove double quote
-  const cleanedGeneratedMetaDescText = generatedMetaDescText.replace(/"/g, '');
+  let metaDescPromptText = "";
 
-  const output = {
-    data: {
-      metadescription: cleanedGeneratedMetaDescText
-    }
-  };
+  if (outputLanguage === 'fr') {
+    metaDescPromptText = "Write a short meta description for this product. Please use <meta> HTML. Check for spelling mistakes. Check spaces between numbers and avoid special characters. Your answer must respect the ideal size of a meta descriptions in french, I want 18 words maximum. It's important to respect the requested length for the meta descriptions. ";
+  } else if (outputLanguage === 'en') {
+    metaDescPromptText = "Write a short meta description for this product. Please write in English use <meta> HTML. Check for spelling mistakes. Check spaces between numbers and avoid special characters. Your answer must respect the ideal size of a meta descriptions. I want 18 words maximum. It's important to respect the requested length for the meta descriptions.";
+  }
 
-  res.status(200).json(output);
+  const Type = `To help you understand the context of my request here is the type of product is ${productType}. Do not write in the result, only take into account`
+  const Category = `To help you understand the context of my request here is the category of product is ${productCategory}. Do not write in the result, only take into account`
+  
+
+
+  const metaDescPrompt = `${metaDescPromptText}\n${Type}\n${Category}\n${input}`;
+
+  if (outputFormat === 'json' || outputFormat === 'html') {
+    generatedMetaDescText = await generateTextWithExponentialBackoff(metaDescPrompt, 150, 0.7, outputLanguage);
+  } else {
+    generatedMetaDescText = await generateTextWithExponentialBackoff(metaDescPrompt, 150, 0.7, outputLanguage);
+  }
+
+  // remove double quotes and HTML tags if necessary
+  const cleanedGeneratedMetaDescText = generatedMetaDescText.replace(/<\/?[^>]+(>|$)/g, '').replace(/"/g, '');
+
+  if (outputFormat === 'json') {
+    const output = {
+      data: {
+        metadescription: cleanedGeneratedMetaDescText
+      }
+    };
+
+    res.status(200).json(output);
+  } else {
+    // Return the results with or without HTML formatting
+    const htmlResponse = `<meta name="description" content="${cleanedGeneratedMetaDescText}">`;
+    res.status(200).send(htmlResponse);
+  }
 });
+
 
 // Define a route for /list
 app.post('/list', async (req, res) => {
   const input = req.body.text;
-  const listPromptText = "Write a list of relevant, hard-hitting benefits that highlight the product's strengths. Present it as a list in <ul> and <li> tags. Make sure each benefit is concise, professional, and convincing. Write in French. Maximum 200 words.";
-  const listPrompt = `${listPromptText}${input} `;
+  const productType = req.body.product_type
+  const productCategory = req.body.product_category
+  const outputFormat = req.body.output_format;
+  const outputLanguage = req.body.output_language;
 
-  const generatedListText = await generateTextWithExponentialBackoff(listPrompt, 600, 0.6);
+  let generatedListText = '';
 
-  // remove double quote
-  const cleanedGeneratedListText = generatedListText.replace(/"/g, '');
+  let listPromptText = "";
 
-  const output = {
-    data: {
-      list: cleanedGeneratedListText
-    }
-  };
+  if (outputLanguage === 'fr') {
+    listPromptText = "Write only a list of relevant, hard-hitting benefits that highlight the product's strengths. Present it as a list in <ul> and <li> tags. Make sure each benefit is concise, professional, and convincing. Write in French. Maximum 200 words.";
+  } else if (outputLanguage === 'en') {
+    listPromptText = "Write only a list of relevant, hard-hitting benefits that highlight the product's strengths. Present it as a list in <ul> and <li> tags. Make sure each benefit is concise, professional, and convincing. Write in English. Maximum 200 words.";
+  }
 
-  res.status(200).json(output);
+  const Type = `Product Type is ${productType}`
+  const Category = `Product Category is ${productCategory}`
+
+  const listPrompt = `${listPromptText}\n${Type}\n${Category}\n${input}`; // Add a newline before input
+
+  if (outputFormat === 'json' || outputFormat === 'html') {
+    generatedListText = await generateTextWithExponentialBackoff(listPrompt, 300, 0.6, outputLanguage);
+  } else {
+    generatedListText = await generateTextWithExponentialBackoff(listPrompt, 300, 0.6, outputLanguage);
+  }
+
+  // remove double quote and HTML tags if necessary
+  const cleanedGeneratedListText = generatedListText
+    .replace(/<\/?[^>]+(>|$)/g, '') // Remove HTML tags
+    .replace(/"/g, '')              // Remove double quotes
+    .trim();
+
+  const cleanedGeneratedListTextHTML = generatedListText.replace(/"/g, '');
+
+  if (outputFormat === 'json') {
+    const benefitsArrayWithoutHTML = cleanedGeneratedListText.split('\n').map(item => item.trim()).filter(item => item !== ''); // Trim each item
+    const tableOutputWithoutHTML = benefitsArrayWithoutHTML.map(benefit => ({ benefit }));
+
+    const output = {
+      data: {
+        list: tableOutputWithoutHTML
+      }
+    };
+
+    res.status(200).json(output);
+  } else {
+    // Return the results with or without HTML formatting
+    res.status(200).send(cleanedGeneratedListTextHTML);
+  }
 });
 
-// ... (continue with other routes if needed)
+// Define a route for /description
 app.post('/description', async (req, res) => {
   const input = req.body.text;
-  const descriptionPromptText = "Write a professional, SEO-optimized product description. The description should be divided into three distinct sections of around 200 words, each focusing on a product benefit or feature. Write a creative and relevant title for each section, between two <h2>. Avoid repetition between sections and use <p> HTML. Please write in French. Check for spelling mistakes. Check spaces between numbers and avoid special characters. Please write in French.";
-  const descriptionPrompt = `${descriptionPromptText}${input} `;
+  const productType = req.body.product_type
+  const productCategory = req.body.product_category
+  const outputFormat = req.body.output_format;
+  const outputLanguage = req.body.output_language;
 
-  const generatedDescriptionText = await generateTextWithExponentialBackoff(descriptionPrompt, 600, 0.6);
+  let generatedDescriptionText = '';
 
-  // remove double quote
-  const cleanedGeneratedDescriptionText = generatedDescriptionText.replace(/"/g, '');
-  console.log('generatedDescriptionText:', cleanedGeneratedDescriptionText);
+  let descriptionPromptText = "";
 
-  const output = {
-    data: {
-      description: cleanedGeneratedDescriptionText
-    }
-  };
+  if (outputLanguage === 'fr') {
+    descriptionPromptText = "Write a long product description professional, SEO-optimized. The description should be divided into three distinct sections of around 200 words. Write a creative and relevant title for each section use HTML tags <h2> and <p>. Avoid repetition between sections. Please write in French. Check for spelling mistakes. Check spaces between numbers and avoid special characters. Please write in French.";
+  } else if (outputLanguage === 'en') {
+    descriptionPromptText = "Write a long product description professional, SEO-optimized. The description should be divided into three distinct sections of around 200 words. Write a creative and relevant title for each section use HTML tags <h2> and <p>. Avoid repetition between sections. Please write in English. Check for spelling mistakes. Check spaces between numbers and avoid special characters. Please write in English.";
+  }
 
-  res.status(200).json(output);
-})
+  const Type = `Product Type is ${productType}`
+  const Category = `Product Category is ${productCategory}`
+
+  const descriptionPrompt = `${descriptionPromptText}\n${Type}\n${Category}\n${input}`;
+
+  if (outputFormat === 'json' || outputFormat === 'html') {
+    generatedDescriptionText = await generateTextWithExponentialBackoff(descriptionPrompt, 1200, 0.6, outputLanguage);
+  } else {
+    generatedDescriptionText = await generateTextWithExponentialBackoff(descriptionPrompt, 1200, 0.6, outputLanguage);
+  }
+
+  // remove double quote and HTML tags if necessary
+  const cleanedGeneratedDescriptionTextHTML = generatedDescriptionText.replace(/"/g, '');
+
+  if (outputFormat === 'json') {
+    const output = {
+      data: {
+        description: cleanedGeneratedDescriptionTextHTML
+      }
+    };
+
+    res.status(200).json(output);
+  } else {
+    // Return the results with or without HTML formatting
+    const htmlResponse = `<div>${cleanedGeneratedDescriptionTextHTML}</div>`;
+    res.status(200).send(htmlResponse);
+  }
+});
 
 // Start the server
 app.listen(port, () => {
