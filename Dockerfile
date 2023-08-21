@@ -1,5 +1,5 @@
 # Définir l'image de base à utiliser pour notre application
-FROM node:14-alpine
+FROM node:18.16.0-alpine
 
 # Définir le répertoire de travail
 WORKDIR /front
