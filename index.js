@@ -77,7 +77,7 @@ app.post('/title', async (req, res) => {
   let titlePromptText = "";
 
   if (outputLanguage === 'fr') {
-    titlePromptText = "Write title SEO-optimized for this product on seven words maximum. Please write in French and use title HTML. Check for spelling mistakes. I want 7 words maximum. It's important to respect the requested length for title.  ";
+    titlePromptText = "Write title SEO-optimized for this product on seven words maximum. Please write in French and use title HTML. Check for spelling mistakes. I want 7 words maximum. It's important to respect the requested length for title.";
   } else if (outputLanguage === 'en') {
     titlePromptText = "Write title SEO-optimized for this product. Please write in English and use title HTML. I want 7 words maximum. It's important to respect the requested length for title.";
   }
